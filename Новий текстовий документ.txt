@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>Калькулятор доходу менеджера</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f6f7f9; padding:40px; }
+    .card { max-width:600px; margin:auto; background:#fff; padding:30px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,.1); }
+    h1 { margin-bottom:20px; }
+    label { display:block; margin-top:15px; font-weight:600; }
+    input { width:100%; padding:10px; margin-top:5px; font-size:16px; }
+    button { margin-top:25px; padding:12px; width:100%; font-size:18px; background:#ff6a00; color:#fff; border:none; border-radius:8px; cursor:pointer; }
+    .result { margin-top:25px; background:#f0f3f7; padding:15px; border-radius:8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>💰 Калькулятор зарплати</h1>
+
+    <label>Апрув (%)</label>
+    <input id="approve" type="number" value="80">
+
+    <label>Викуп (%)</label>
+    <input id="buyout" type="number" value="70">
+
+    <label>Грязна кількість заявок (опціонально)</label>
+    <input id="rawLeads" type="number" placeholder="Наприклад: 3000">
+
+    <label>Середня маржа з 1 замовлення (грн)</label>
+    <input id="marginPerOrder" type="number" value="160">
+
+    <label>Бажаний дохід (грн)</label>
+    <input id="target" type="number" value="30000">
+
+    <button onclick="calculate()">Розрахувати</button>
+
+    <div class="result" id="goals"></div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+<script>
+function getRate(avg) {
+  const table = [
+    [55,5.5],[60,6.5],[65,7.5],[67,8.5],[68,9],[70,9.5],[72,9.7],
+    [74,10],[76,10.5],[78,11],[80,11.5],[82,12]
+  ];
+  for (let i = table.length-1; i >= 0; i--) {
+    if (avg >= table[i][0]) return table[i][1];
+  }
+  return 0;
+}
+
+function getMarginPercent(sum) {
+  if (sum >= 204000) return 0.11;
+  if (sum >= 180000) return 0.105;
+  if (sum >= 144000) return 0.10;
+  if (sum >= 120000) return 0.095;
+  if (sum >= 96000) return 0.09;
+  if (sum >= 72000) return 0.085;
+  return 0.07;
+}
+
+function calculate() {
+  const approve = +document.getElementById('approve').value;
+  const buyout = +document.getElementById('buyout').value;
+  const marginOne = +document.getElementById('marginPerOrder').value;
+  const target = +document.getElementById('target').value;
+
+  const avg = (approve + buyout) / 2;
+  const rate = getRate(avg);
+
+  let orders = 0;
+  let income = 0;
+
+  while (income < target && orders < 5000) {
+    orders++;
+    const marginSum = orders * marginOne;
+    const percent = getMarginPercent(marginSum);
+    const upsellIncome = marginSum * percent;
+    const baseIncome = orders * rate;
+    income = upsellIncome + baseIncome;
+  }
+
+  document.getElementById('result').innerHTML = `
+    <b>Середній коефіцієнт:</b> ${avg.toFixed(1)}%<br>
+    <b>Ставка за викуп:</b> ${rate} грн<br><br>
+
+    <b>Потрібно викупів:</b> <b>${orders}</b><br>
+    <b>Грязна кількість замовлень:</b> ${Math.ceil(orders / (buyout/100)).toLocaleString()}<br><br>
+
+    <b>Грязна маржа:</b> ${(orders*marginOne).toLocaleString()} грн<br>
+    <b>Дохід з маржі:</b> ${(orders*marginOne*getMarginPercent(orders*marginOne)).toLocaleString()} грн<br>
+    <b>Орієнтовний загальний дохід:</b> <b>${income.toLocaleString()} грн</b>
+  `;
+
+  const goals = [20000, 30000, 40000];
+  let goalsHtml = '<h3>🎯 Цілі</h3>';
+
+  goals.forEach(g => {
+    let o = 0;
+    let inc = 0;
+    while (inc < g && o < 5000) {
+      o++;
+      const mSum = o * marginOne;
+      const p = getMarginPercent(mSum);
+      inc = (o * rate) + (mSum * p);
+    }
+    goalsHtml += `<b>${g.toLocaleString()} грн:</b> ${o} викупів (${Math.ceil(o/(buyout/100))} грязних)<br>`;
+  });
+
+  document.getElementById('goals').innerHTML = goalsHtml;
+}
+</script>
+</body>
+</html>

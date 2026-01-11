@@ -83,15 +83,17 @@ function calculate() {
   }
 
   document.getElementById('result').innerHTML = `
-    <b>Середній коефіцієнт:</b> ${avg.toFixed(1)}%<br>
-    <b>Ставка за викуп:</b> ${rate} грн<br><br>
+    <h3>📊 Показники</h3>
+    <b>Чисті викупи (факт):</b> <b>${orders}</b><br>
+    <b>Грязні замовлення (до викупу):</b> ${Math.ceil(orders / (buyout/100)).toLocaleString()}<br><br>
 
-    <b>Потрібно викупів:</b> <b>${orders}</b><br>
-    <b>Грязна кількість замовлень:</b> ${Math.ceil(orders / (buyout/100)).toLocaleString()}<br><br>
+    <b>Чиста маржа:</b> ${(orders*marginOne).toLocaleString()} грн<br>
+    <b>Грязна маржа (до викупу):</b> ${(Math.ceil(orders / (buyout/100)) * marginOne).toLocaleString()} грн<br>
+    <b>% з маржі:</b> ${(getMarginPercent(orders*marginOne)*100).toFixed(1)}%<br>
+    <b>Дохід з маржі (чистий):</b> ${(orders*marginOne*getMarginPercent(orders*marginOne)).toLocaleString()} грн<br><br>
 
-    <b>Грязна маржа:</b> ${(orders*marginOne).toLocaleString()} грн<br>
-    <b>Дохід з маржі:</b> ${(orders*marginOne*getMarginPercent(orders*marginOne)).toLocaleString()} грн<br>
-    <b>Орієнтовний загальний дохід:</b> <b>${income.toLocaleString()} грн</b>
+    <b>Дохід з викупів:</b> ${(orders*rate).toLocaleString()} грн<br>
+    <b>Загальний чистий дохід:</b> <b>${income.toLocaleString()} грн</b>
   `;
 
   const goals = [20000, 30000, 40000];

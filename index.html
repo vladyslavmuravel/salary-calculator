@@ -23,6 +23,9 @@
     <label>Викуп (%)</label>
     <input id="buyout" type="number" value="70">
 
+    <label>Грязна кількість заявок (опціонально)</label>
+    <input id="rawLeads" type="number" placeholder="Наприклад: 3000">
+
     <label>Середня маржа з 1 замовлення (грн)</label>
     <input id="marginPerOrder" type="number" value="160">
 
@@ -30,6 +33,8 @@
     <input id="target" type="number" value="30000">
 
     <button onclick="calculate()">Розрахувати</button>
+
+    <div class="result" id="goals"></div>
 
     <div class="result" id="result"></div>
   </div>
@@ -80,10 +85,31 @@ function calculate() {
   document.getElementById('result').innerHTML = `
     <b>Середній коефіцієнт:</b> ${avg.toFixed(1)}%<br>
     <b>Ставка за викуп:</b> ${rate} грн<br><br>
+
     <b>Потрібно викупів:</b> <b>${orders}</b><br>
-    <b>Загальна маржа:</b> ${(orders*marginOne).toLocaleString()} грн<br>
-    <b>Орієнтовний дохід:</b> <b>${income.toLocaleString()} грн</b>
+    <b>Грязна кількість замовлень:</b> ${Math.ceil(orders / (buyout/100)).toLocaleString()}<br><br>
+
+    <b>Грязна маржа:</b> ${(orders*marginOne).toLocaleString()} грн<br>
+    <b>Дохід з маржі:</b> ${(orders*marginOne*getMarginPercent(orders*marginOne)).toLocaleString()} грн<br>
+    <b>Орієнтовний загальний дохід:</b> <b>${income.toLocaleString()} грн</b>
   `;
+
+  const goals = [20000, 30000, 40000];
+  let goalsHtml = '<h3>🎯 Цілі</h3>';
+
+  goals.forEach(g => {
+    let o = 0;
+    let inc = 0;
+    while (inc < g && o < 5000) {
+      o++;
+      const mSum = o * marginOne;
+      const p = getMarginPercent(mSum);
+      inc = (o * rate) + (mSum * p);
+    }
+    goalsHtml += `<b>${g.toLocaleString()} грн:</b> ${o} викупів (${Math.ceil(o/(buyout/100))} грязних)<br>`;
+  });
+
+  document.getElementById('goals').innerHTML = goalsHtml;
 }
 </script>
 </body>
